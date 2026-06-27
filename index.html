@@ -6,14 +6,14 @@
 <meta name="theme-color" content="#0d0f14">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="윤들러">
-<title>윤들러 · 5/3/1 운동</title>
+<meta name="apple-mobile-web-app-title" content="Yundler">
+<title>Yundler · 5/3/1 운동</title>
 <link rel="manifest" href="manifest.json">
 <style>
 :root{
   --bg:#0d0f14; --bg2:#151922; --card:#1b2130; --card2:#222a3b;
   --line:#2a3242; --txt:#eef2f8; --sub:#8e9bb3; --mut:#5f6b82;
-  --accent:#ff5a36; --accent2:#ff7a4d; --good:#2ecc71; --gold:#ffc857;
+  --accent:#e8f3ff; --accent2:#cfe4ff; --accent-ink:#0d1320; --good:#2ecc71; --gold:#ffc857;
   --r:18px;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
@@ -40,7 +40,7 @@ input{font-family:inherit}
 .wkbar{display:flex;gap:8px;margin:12px 4px 18px;overflow-x:auto;scrollbar-width:none}
 .wkbar::-webkit-scrollbar{display:none}
 .wkpill{flex:0 0 auto;padding:9px 16px;border-radius:14px;background:var(--card);border:1px solid var(--line);font-size:13px;font-weight:600;color:var(--sub)}
-.wkpill.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.wkpill.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 
 .lift{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:18px;margin-bottom:14px;display:flex;align-items:center;gap:14px;transition:.15s;position:relative;overflow:hidden}
 .lift:active{transform:scale(.985)}
@@ -68,7 +68,7 @@ input{font-family:inherit}
 .set .reps{margin-left:auto;font-size:15px;font-weight:700;color:var(--sub);text-align:right}
 .set.amrap .reps{color:var(--accent2)}
 .set .reps b{color:var(--txt);font-size:17px}
-.ambadge{display:inline-block;background:var(--accent);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;margin-left:7px;vertical-align:middle}
+.ambadge{display:inline-block;background:var(--accent);color:var(--accent-ink);font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;margin-left:7px;vertical-align:middle}
 
 .amrap-rec{background:var(--card);border:1px solid var(--accent);border-radius:14px;padding:16px 18px;margin-top:8px}
 .amrap-rec label{font-size:13px;color:var(--sub);display:block;margin-bottom:10px}
@@ -78,7 +78,7 @@ input{font-family:inherit}
 .amrap-rec .val{flex:1;text-align:center;font-size:30px;font-weight:800}
 .est{font-size:12px;color:var(--mut);margin-top:10px;text-align:center}
 
-.btn{display:block;width:100%;padding:16px;border-radius:15px;font-size:16px;font-weight:700;text-align:center;background:var(--accent);color:#fff;margin-top:20px;transition:.15s}
+.btn{display:block;width:100%;padding:16px;border-radius:15px;font-size:16px;font-weight:700;text-align:center;background:var(--accent);color:var(--accent-ink);margin-top:20px;transition:.15s}
 .btn:active{transform:scale(.98);background:var(--accent2)}
 .btn.ghost{background:var(--card);border:1px solid var(--line);color:var(--txt)}
 .btn.good{background:var(--good)}
@@ -92,7 +92,7 @@ input{font-family:inherit}
 .field input:focus{border-color:var(--accent)}
 .unitseg{display:flex;background:var(--card);border:1px solid var(--line);border-radius:13px;padding:4px;gap:4px}
 .unitseg button{flex:1;padding:11px;border-radius:10px;font-size:15px;font-weight:600;color:var(--sub)}
-.unitseg button.on{background:var(--accent);color:#fff}
+.unitseg button.on{background:var(--accent);color:var(--accent-ink)}
 .toggleseg{display:flex;background:var(--card);border:1px solid var(--line);border-radius:13px;padding:4px;gap:4px}
 .toggleseg button{flex:1;padding:11px;border-radius:10px;font-size:14px;font-weight:600;color:var(--sub)}
 .toggleseg button.on{background:var(--card2);color:var(--txt)}
@@ -123,12 +123,12 @@ input{font-family:inherit}
 .nav button.on{color:var(--accent)}
 .nav button .ni{font-size:21px}
 
-.cyccard{background:linear-gradient(135deg,var(--accent),#c43d20);border-radius:var(--r);padding:18px 20px;margin:4px 4px 16px;color:#fff;position:relative;overflow:hidden}
-.cyccard::after{content:"";position:absolute;right:-30px;top:-30px;width:130px;height:130px;background:rgba(255,255,255,.08);border-radius:50%}
+.cyccard{background:linear-gradient(135deg,var(--accent),#bcd6f5);border-radius:var(--r);padding:18px 20px;margin:4px 4px 16px;color:var(--accent-ink);position:relative;overflow:hidden}
+.cyccard::after{content:"";position:absolute;right:-30px;top:-30px;width:130px;height:130px;background:rgba(13,19,32,.06);border-radius:50%}
 .cyccard h2{font-size:19px;font-weight:800;margin-bottom:3px}
-.cyccard p{font-size:13px;opacity:.9}
-.cyccard .prog{margin-top:12px;height:7px;background:rgba(255,255,255,.25);border-radius:5px;overflow:hidden}
-.cyccard .prog i{display:block;height:100%;background:#fff;border-radius:5px;transition:.4s}
+.cyccard p{font-size:13px;opacity:.8}
+.cyccard .prog{margin-top:12px;height:7px;background:rgba(13,19,32,.15);border-radius:5px;overflow:hidden}
+.cyccard .prog i{display:block;height:100%;background:var(--accent-ink);border-radius:5px;transition:.4s}
 
 .toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--card2);border:1px solid var(--line);color:var(--txt);padding:13px 22px;border-radius:30px;font-size:14px;font-weight:600;opacity:0;transition:.3s;z-index:50;pointer-events:none;box-shadow:0 8px 30px rgba(0,0,0,.4);max-width:90%;text-align:center}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -142,7 +142,7 @@ input{font-family:inherit}
 .auth .brand p{color:var(--sub);font-size:14px;margin-top:8px}
 .auth .tabs{display:flex;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:4px;gap:4px;margin-bottom:22px}
 .auth .tabs button{flex:1;padding:12px;border-radius:10px;font-size:15px;font-weight:700;color:var(--sub)}
-.auth .tabs button.on{background:var(--accent);color:#fff}
+.auth .tabs button.on{background:var(--accent);color:var(--accent-ink)}
 .auth .err{color:#ff6b6b;font-size:13px;text-align:center;min-height:18px;margin-top:4px}
 .cfgwarn{background:#3a1f1a;border:1px solid var(--accent);border-radius:13px;padding:16px;font-size:13px;line-height:1.6;color:#ffd9cd;margin-bottom:20px}
 .adminlink{display:block;text-align:center;color:var(--gold);font-size:14px;font-weight:700;padding:14px;background:var(--card);border:1px solid var(--line);border-radius:13px;margin-top:8px;text-decoration:none}
@@ -152,19 +152,20 @@ input{font-family:inherit}
 <body>
 <div class="app">
   <div class="hd" id="hd" style="display:none">
-    <div class="logo">윤<span>들러</span></div>
+    <div class="logo">Yun<span>dler</span></div>
     <div class="cyc" id="cycLabel">사이클 1</div>
   </div>
 
   <!-- 로그인/회원가입 -->
   <div class="page" id="page-auth">
     <div class="auth">
-      <div class="brand"><h1>윤<span>들러</span></h1><p>웬들러 5/3/1 근력 프로그램</p></div>
+      <div class="brand"><h1>Yun<span>dler</span></h1><p>웬들러 5/3/1 근력 프로그램</p></div>
       <div id="cfgWarn"></div>
       <div class="tabs" id="authTabs">
         <button data-t="login" class="on">로그인</button>
         <button data-t="signup">회원가입</button>
       </div>
+      <div class="field" id="authNameWrap" style="display:none"><input type="text" id="authName" placeholder="이름 (관리자에게 표시돼요)" autocomplete="name"></div>
       <div class="field"><input type="text" id="authId" placeholder="아이디" autocomplete="username" autocapitalize="off"></div>
       <div class="field"><input type="password" id="authPw" placeholder="비밀번호 (6자 이상)" autocomplete="current-password"></div>
       <div class="err" id="authErr"></div>
@@ -328,6 +329,7 @@ function initAuthScreen(){
     authMode=b.dataset.t;
     document.querySelectorAll("#authTabs button").forEach(x=>x.classList.toggle("on",x===b));
     document.getElementById("authBtn").textContent = authMode==="login"?"로그인":"회원가입";
+    document.getElementById("authNameWrap").style.display = authMode==="signup"?"block":"none";
     document.getElementById("authErr").textContent="";
   });
   document.getElementById("authBtn").addEventListener("click", doAuth);
@@ -344,10 +346,12 @@ async function doAuth(){
   const btn=document.getElementById("authBtn"); btn.disabled=true; btn.textContent="처리 중…";
   try{
     if(authMode==="signup"){
+      const nm=document.getElementById("authName").value.trim();
+      if(!nm){ err.textContent="이름을 입력해주세요"; return; }
       const {data,error}=await sb.auth.signUp({email,password:pw});
       if(error) throw error;
       if(!data.session){ err.textContent="가입은 됐지만 자동 로그인이 안 됐어요. 관리자에게 이메일 인증 끄기를 요청하세요."; return; }
-      await sb.from("profiles").insert({id:data.user.id, username:id, state:{}});
+      await sb.from("profiles").insert({id:data.user.id, username:id, name:nm, state:{}, last_seen:new Date().toISOString()});
       await afterLogin();
     }else{
       const {error}=await sb.auth.signInWithPassword({email,password:pw});
@@ -369,10 +373,11 @@ async function afterLogin(){
   let {data:p} = await sb.from("profiles").select("*").eq("id",session.user.id).single();
   if(!p){ // 안전장치: 프로필 없으면 생성
     const id=session.user.email.replace(FAKE_DOMAIN,"");
-    await sb.from("profiles").insert({id:session.user.id, username:id, state:{}});
+    await sb.from("profiles").insert({id:session.user.id, username:id, name:id, state:{}, last_seen:new Date().toISOString()});
     ({data:p}=await sb.from("profiles").select("*").eq("id",session.user.id).single());
   }
   profile=p;
+  sb.from("profiles").update({last_seen:new Date().toISOString()}).eq("id",session.user.id).then(()=>{});
   S=Object.assign(JSON.parse(JSON.stringify(DEF)), p.state||{});
   if(S.setup && S.tm && Object.keys(S.tm).length===4){ render(); show("today"); }
   else { buildSetup(); show("setup"); }
@@ -549,7 +554,7 @@ async function renderHistory(){
 
 /* ---------- 설정 ---------- */
 function buildSettings(){
-  document.getElementById("meBox").innerHTML=`👤 <b style="color:var(--txt)">${profile?profile.username:""}</b> 님으로 로그인됨`;
+  document.getElementById("meBox").innerHTML=`👤 <b style="color:var(--txt)">${profile?(profile.name||profile.username):""}</b> 님으로 로그인됨 <span style="color:var(--mut)">(${profile?profile.username:""})</span>`;
   document.getElementById("adminLink").style.display = (profile&&profile.is_admin)?"block":"none";
   document.getElementById("unitSeg2").innerHTML=`
     <button data-u="kg" class="${S.unit==='kg'?'on':''}">kg</button>

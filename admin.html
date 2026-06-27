@@ -4,11 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#0d0f14">
-<title>윤들러 · 관리자</title>
+<title>Yundler · 관리자</title>
 <style>
 :root{
   --bg:#0d0f14; --card:#1b2130; --card2:#222a3b; --line:#2a3242;
-  --txt:#eef2f8; --sub:#8e9bb3; --mut:#5f6b82; --accent:#ff5a36; --gold:#ffc857; --good:#2ecc71;
+  --txt:#eef2f8; --sub:#8e9bb3; --mut:#5f6b82; --accent:#e8f3ff; --accent2:#cfe4ff; --gold:#ffc857; --good:#2ecc71;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;background:var(--bg);color:var(--txt);-webkit-font-smoothing:antialiased}
@@ -59,7 +59,7 @@ tbody tr:hover{background:var(--card2)}
 .log .d{font-size:12px;color:var(--mut);flex:0 0 70px}
 .log .l{flex:1;font-weight:600;font-size:14px}
 .log .r{font-size:13px;color:var(--sub)}
-.log .r b{color:#ff7a4d}
+.log .r b{color:var(--accent2)}
 .loading{text-align:center;color:var(--mut);padding:40px}
 </style>
 </head>
@@ -116,7 +116,7 @@ function renderDash(){
   const wrap=document.getElementById("wrap");
   wrap.innerHTML=`
     <div class="top">
-      <h1>윤<span>들러</span> 관리자</h1>
+      <h1>Yun<span>dler</span> 관리자</h1>
       <a class="home" href="index.html">‹ 앱으로</a>
     </div>
     <div class="sub">회원 활동과 운동 데이터를 한눈에</div>
@@ -130,7 +130,7 @@ function renderDash(){
       <span class="cnt" id="cnt"></span>
     </div>
     <table>
-      <thead><tr><th>아이디</th><th>사이클</th><th>운동 수</th><th>최근 운동</th><th>가입일</th></tr></thead>
+      <thead><tr><th>이름</th><th>아이디</th><th>사이클</th><th>운동 수</th><th>최근 접속</th><th>가입일</th></tr></thead>
       <tbody id="rows"></tbody>
     </table>`;
   document.getElementById("search").addEventListener("input",e=>renderRows(e.target.value.trim().toLowerCase()));
@@ -139,18 +139,20 @@ function renderDash(){
 
 function renderRows(q){
   const rows=document.getElementById("rows");
-  const list=allUsers.filter(u=>!q||(u.username||"").includes(q));
+  const list=allUsers.filter(u=>!q||(u.username||"").includes(q)||(u.name||"").toLowerCase().includes(q));
   document.getElementById("cnt").textContent=`${list.length}명`;
   if(!list.length){ rows.innerHTML=`<tr><td colspan="5" class="empty">결과 없음</td></tr>`; return; }
   rows.innerHTML=list.map(u=>{
     const s=statsFor(u.id);
     const st=u.state||{};
     const cyc=st.cycle?`사이클 ${st.cycle}·${["1주","2주","3주","회복"][st.week||0]}`:"<span class='muted'>미시작</span>";
+    const seen=u.last_seen?new Date(u.last_seen):null;
     return `<tr data-uid="${u.id}">
-      <td class="uname">${u.username||"?"}${u.is_admin?'<span class="badge">관리자</span>':''}</td>
+      <td class="uname">${u.name||"<span class='muted'>-</span>"}${u.is_admin?'<span class="badge">관리자</span>':''}</td>
+      <td class="muted">${u.username||"?"}</td>
       <td>${cyc}</td>
       <td>${s.count}</td>
-      <td>${fmtDate(s.last)} <span class="muted">${daysAgo(s.last)}</span></td>
+      <td>${fmtDate(seen)} <span class="muted">${daysAgo(seen)}</span></td>
       <td class="muted">${u.created_at?fmtDate(new Date(u.created_at)):"—"}</td>
     </tr>`;
   }).join("");
@@ -166,8 +168,8 @@ function openUser(uid){
   const bestE=w.filter(x=>x.reps).reduce((m,x)=>Math.max(m,Math.round(x.weight*x.reps*0.0333+x.weight)),0);
   const sheet=document.getElementById("sheet");
   sheet.innerHTML=`
-    <div class="sh"><h3>👤 ${u.username||"?"}</h3><button class="x" id="closeX">×</button></div>
-    <div class="muted">${u.is_admin?"관리자 · ":""}가입 ${u.created_at?fmtDate(new Date(u.created_at)):"—"}</div>
+    <div class="sh"><h3>👤 ${u.name||u.username||"?"}</h3><button class="x" id="closeX">×</button></div>
+    <div class="muted">${u.is_admin?"관리자 · ":""}아이디 ${u.username||"?"} · 가입 ${u.created_at?fmtDate(new Date(u.created_at)):"—"} · 최근접속 ${u.last_seen?fmtDate(new Date(u.last_seen)):"—"}</div>
     <div class="mini">
       <div class="m"><div class="v">${w.length}</div><div class="k">총 운동</div></div>
       <div class="m"><div class="v">${st.cycle||"—"}</div><div class="k">현재 사이클</div></div>
