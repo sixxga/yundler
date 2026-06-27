@@ -78,7 +78,7 @@ const FAKE_DOMAIN="@yundler.local";
 const cfg=window.YUNDLER_CONFIG||{};
 const configured=cfg.SUPABASE_URL&&cfg.SUPABASE_URL.startsWith("http")&&cfg.SUPABASE_ANON_KEY&&cfg.SUPABASE_ANON_KEY.length>20;
 const sb=configured?window.supabase.createClient(cfg.SUPABASE_URL,cfg.SUPABASE_ANON_KEY):null;
-const LIFT_ICON={"오버헤드 프레스":"🏋️","데드리프트":"🦵","벤치프레스":"💪","스쿼트":"🍑"};
+const LIFT_ICON={};
 
 let allUsers=[], allWorkouts=[];
 
@@ -89,7 +89,7 @@ async function boot(){
   const {data:{session}}=await sb.auth.getSession();
   if(!session){ gate(`<h2>로그인이 필요해요</h2><p>관리자 계정으로 먼저 로그인하세요.</p><a href="index.html">‹ 로그인하러 가기</a>`); return; }
   const {data:me}=await sb.from("profiles").select("*").eq("id",session.user.id).single();
-  if(!me||!me.is_admin){ gate(`<h2>접근 권한 없음 🔒</h2><p>이 페이지는 관리자만 볼 수 있어요.<br>관리자 계정으로 로그인했는지 확인하세요.</p><a href="index.html">‹ 앱으로 돌아가기</a>`); return; }
+  if(!me||!me.is_admin){ gate(`<h2>접근 권한 없음</h2><p>이 페이지는 관리자만 볼 수 있어요.<br>관리자 계정으로 로그인했는지 확인하세요.</p><a href="index.html">‹ 앱으로 돌아가기</a>`); return; }
   await loadAll();
 }
 
@@ -126,7 +126,7 @@ function renderDash(){
       <div class="stat"><div class="v">${totalW}</div><div class="k">누적 운동 횟수</div></div>
     </div>
     <div class="bar">
-      <input id="search" placeholder="🔍 아이디 검색">
+      <input id="search" placeholder="아이디·이름 검색">
       <span class="cnt" id="cnt"></span>
     </div>
     <table>
@@ -168,7 +168,7 @@ function openUser(uid){
   const bestE=w.filter(x=>x.reps).reduce((m,x)=>Math.max(m,Math.round(x.weight*x.reps*0.0333+x.weight)),0);
   const sheet=document.getElementById("sheet");
   sheet.innerHTML=`
-    <div class="sh"><h3>👤 ${u.name||u.username||"?"}</h3><button class="x" id="closeX">×</button></div>
+    <div class="sh"><h3>${u.name||u.username||"?"}</h3><button class="x" id="closeX">×</button></div>
     <div class="muted">${u.is_admin?"관리자 · ":""}아이디 ${u.username||"?"} · 가입 ${u.created_at?fmtDate(new Date(u.created_at)):"—"} · 최근접속 ${u.last_seen?fmtDate(new Date(u.last_seen)):"—"}</div>
     <div class="mini">
       <div class="m"><div class="v">${w.length}</div><div class="k">총 운동</div></div>
@@ -176,15 +176,32 @@ function openUser(uid){
       <div class="m"><div class="v">${bestE||"—"}<small style="font-size:12px"> ${unit}</small></div><div class="k">최고 예상1RM</div></div>
     </div>
     ${Object.keys(tm).length?`<div class="muted" style="margin-bottom:14px">TM · 오버헤드 ${tm.ohp||"-"} / 데드 ${tm.dead||"-"} / 벤치 ${tm.bench||"-"} / 스쿼트 ${tm.squat||"-"} ${unit}</div>`:""}
-    <div style="font-size:13px;font-weight:700;color:var(--mut);margin:8px 2px 10px">운동 기록 (${w.length})</div>
+    <div style="font-size:13px;font-weight:700;color:var(--mut);margin:14px 2px 10px">정보 수정 (관리자 권한)</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <label style="font-size:12px;color:var(--sub)">이름<input id="edName" value="${(u.name||'').replace(/"/g,'&quot;')}" style="width:100%;margin-top:5px;padding:10px;border-radius:9px;background:var(--bg2);border:1px solid var(--line);color:var(--txt);font-size:14px"></label>
+      <label style="font-size:12px;color:var(--sub)">성별<select id="edGender" style="width:100%;margin-top:5px;padding:10px;border-radius:9px;background:var(--bg2);border:1px solid var(--line);color:var(--txt);font-size:14px"><option value="male" ${st.gender!=='female'?'selected':''}>남</option><option value="female" ${st.gender==='female'?'selected':''}>여</option></select></label>
+      <label style="font-size:12px;color:var(--sub)">단위<select id="edUnit" style="width:100%;margin-top:5px;padding:10px;border-radius:9px;background:var(--bg2);border:1px solid var(--line);color:var(--txt);font-size:14px"><option value="lb" ${unit!=='kg'?'selected':''}>lb</option><option value="kg" ${unit==='kg'?'selected':''}>kg</option></select></label>
+      <label style="font-size:12px;color:var(--sub)">바벨<input id="edBar" type="number" value="${st.bar||''}" style="width:100%;margin-top:5px;padding:10px;border-radius:9px;background:var(--bg2);border:1px solid var(--line);color:var(--txt);font-size:14px"></label>
+      <label style="font-size:12px;color:var(--sub);grid-column:1/-1">HWPO 시작일<input id="edHwpo" type="date" value="${st.hwpoStart||''}" style="width:100%;margin-top:5px;padding:10px;border-radius:9px;background:var(--bg2);border:1px solid var(--line);color:var(--txt);font-size:14px"></label>
+    </div>
+    <button id="edSave" style="width:100%;margin-top:12px;padding:13px;border-radius:11px;background:var(--accent);color:#fff;font-weight:700;font-size:14px">정보 저장</button>
+    <div style="font-size:13px;font-weight:700;color:var(--mut);margin:18px 2px 10px">운동 기록 (${w.length})</div>
     ${w.length?w.slice(0,100).map(h=>{
       const dt=new Date(h.created_at);
       return `<div class="log"><div class="d">${dt.getMonth()+1}/${dt.getDate()}</div>
-        <div class="l">${h.ic||LIFT_ICON[h.lift]||""} ${h.lift} <span class="muted">${h.label||""}</span></div>
+        <div class="l">${h.lift} <span class="muted">${h.label||""}</span></div>
         <div class="r">${h.weight}${unit} · ${h.reps!=null?`<b>${h.reps}회</b>`:"회복"}</div></div>`;
     }).join(""):`<div class="empty">아직 운동 기록이 없어요</div>`}`;
   document.getElementById("modal").classList.add("show");
   document.getElementById("closeX").onclick=closeModal;
+  document.getElementById("edSave").onclick=async()=>{
+    const ns=Object.assign({},st,{gender:document.getElementById("edGender").value,unit:document.getElementById("edUnit").value,bar:parseFloat(document.getElementById("edBar").value)||st.bar,hwpoStart:document.getElementById("edHwpo").value||null});
+    const name=document.getElementById("edName").value.trim();
+    const btn=document.getElementById("edSave");btn.textContent="저장 중…";
+    const {error}=await sb.from("profiles").update({state:ns,name}).eq("id",uid);
+    if(error){btn.textContent="저장 실패";alert("저장 실패: "+error.message);return;}
+    btn.textContent="저장됨";await loadAll();
+  };
 }
 function closeModal(){ document.getElementById("modal").classList.remove("show"); }
 document.getElementById("modal").addEventListener("click",e=>{ if(e.target.id==="modal") closeModal(); });
