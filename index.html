@@ -35,6 +35,7 @@ input,select{font-family:inherit}
 .page{display:none;padding:8px 16px 120px;flex:1}
 .page.active{display:block;animation:fade .25s ease}
 @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion: reduce){.page.active{animation:none}*{transition:none!important}}
 h2.pt{font-size:22px;font-weight:800;margin:8px 4px 16px}
 
 .wkbar{display:flex;gap:8px;margin:12px 4px 18px;overflow-x:auto;scrollbar-width:none}
@@ -357,9 +358,9 @@ if(configured) sb=window.supabase.createClient(cfg.SUPABASE_URL,cfg.SUPABASE_ANO
 
 const DEF={unit:"lb",bar:45,gender:"male",tm:{},cycle:1,week:0,done:{},showDeload:true,setup:false,
   schedule:{mon:null,tue:null,wed:null,thu:null,fri:null,sat:null,sun:null},
-  weightlifting:{exercises:[]}, hwpoStart:null, weekManual:false};
+  weightlifting:{exercises:[]}, hwpoStart:null};
 let S=JSON.parse(JSON.stringify(DEF));
-let autoApplied=false, highlightLift=null;
+let autoApplied=false, highlightLift=null, manualWeek=false;
 
 function roundInc(){return S.unit==="kg"?2.5:5}
 function roundW(w){const i=roundInc();return Math.round(w/i)*i}
@@ -446,7 +447,9 @@ document.getElementById("startBtn").addEventListener("click",()=>{S.unit=setupUn
 /* HWPO 주차 자동 */
 function hwpoWeekIndex(){if(!S.hwpoStart)return null;const start=new Date(S.hwpoStart+"T00:00:00");const t=new Date();t.setHours(0,0,0,0);const days=Math.floor((t-start)/864e5);if(days<0)return null;return Math.floor(days/7)%4;}
 function hwpoCycleNo(){if(!S.hwpoStart)return null;const start=new Date(S.hwpoStart+"T00:00:00");const t=new Date();t.setHours(0,0,0,0);const days=Math.floor((t-start)/864e5);if(days<0)return null;return Math.floor(Math.floor(days/7)/4)+1;}
-function applyAuto(){if(autoApplied)return;autoApplied=true;const wi=hwpoWeekIndex();if(wi!==null&&!S.weekManual)S.week=(wi===3&&!S.showDeload)?2:wi;const a=todayAssignment();if(a&&a.kind==="main")highlightLift=a.id;}
+function computeAutoWeek(){const wi=hwpoWeekIndex();if(wi!==null&&!manualWeek)S.week=(wi===3&&!S.showDeload)?2:wi;}
+function applyAuto(){autoApplied=true;computeAutoWeek();const a=todayAssignment();highlightLift=(a&&a.kind==="main")?a.id:null;}
+function enterToday(){computeAutoWeek();const a=todayAssignment();highlightLift=(a&&a.kind==="main")?a.id:null;render();}
 
 /* 스케줄 */
 function todayKey(){return DAYS[new Date().getDay()]}
@@ -472,9 +475,9 @@ function render(){
   const d=S.done[wkKey()]||{};
   document.getElementById("liftList").innerHTML=LIFTS.map(l=>{const top=calcW(S.tm[l.key],wk.sets[2][0]);const isT=highlightLift===l.key&&!d[l.key];return `<div class="lift ${d[l.key]?'done':''} ${isT?'today':''}" data-lift="${l.key}"><div class="info"><h3>${l.name}</h3><p>마지막 세트 ${top}${uname()} × ${wk.sets[2][1]}</p></div><div class="chk">완료</div>${isT?'<div class="tag">오늘</div>':'<div class="arrow">›</div>'}</div>`;}).join("");
 }
-document.getElementById("wkbar").addEventListener("click",e=>{const p=e.target.closest(".wkpill");if(!p)return;S.week=+p.dataset.wk;S.weekManual=true;save();render();});
+document.getElementById("wkbar").addEventListener("click",e=>{const p=e.target.closest(".wkpill");if(!p)return;S.week=+p.dataset.wk;manualWeek=true;save();render();});
 document.getElementById("liftList").addEventListener("click",e=>{const c=e.target.closest(".lift");if(!c)return;openWorkout(c.dataset.lift);});
-document.getElementById("nextBtn").addEventListener("click",()=>{let nw=S.week+1;if(nw===3&&!S.showDeload)nw=4;if(nw>=4){advanceCycle();save();render();toast("다음 사이클 시작 (TM 증량)");}else{S.week=nw;S.weekManual=true;save();render();}});
+document.getElementById("nextBtn").addEventListener("click",()=>{let nw=S.week+1;if(nw===3&&!S.showDeload)nw=4;if(nw>=4){advanceCycle();save();render();toast("다음 사이클 시작 (TM 증량)");}else{S.week=nw;manualWeek=true;save();render();}});
 
 /* 워크아웃 */
 let curLift=null,amrapVal=0;
@@ -511,7 +514,7 @@ async function cancelWorkout(key){
   if(S.done[k])delete S.done[k][key];
   save();render();show("today");toast("운동 취소됨");
 }
-function advanceCycle(){S.cycle++;S.week=0;S.weekManual=false;for(const l of LIFTS){S.tm[l.key]+=(l.type==="upper"?(S.unit==="kg"?2.5:5):(S.unit==="kg"?5:10));}}
+function advanceCycle(){S.cycle++;S.week=0;manualWeek=false;for(const l of LIFTS){S.tm[l.key]+=(l.type==="upper"?(S.unit==="kg"?2.5:5):(S.unit==="kg"?5:10));}}
 document.getElementById("woBack").addEventListener("click",()=>show("today"));
 
 /* 달력 대시보드 */
@@ -525,12 +528,13 @@ async function renderDash(){
   if(calMonth===null){const t=new Date();calMonth=new Date(t.getFullYear(),t.getMonth(),1);}
   const now=new Date();const todayStr=now.getFullYear()+"-"+now.getMonth()+"-"+now.getDate();
   const y=calMonth.getFullYear(),m=calMonth.getMonth();
-  const first=new Date(y,m,1).getDay();const days=new Date(y,m+1,0).getDate();
+  const first=(new Date(y,m,1).getDay()+6)%7;const days=new Date(y,m+1,0).getDate();
   let cells="";for(let i=0;i<first;i++)cells+=`<div class="cell empty"></div>`;
   for(let dnum=1;dnum<=days;dnum++){const key=y+"-"+m+"-"+dnum;const cd=new Date(y,m,dnum);cd.setHours(0,0,0,0);const tnow=new Date();tnow.setHours(0,0,0,0);let cls="cell";if(doneDays.has(key))cls+=" done";else if(cd>tnow)cls+=" future";else cls+=" miss";if(key===todayStr)cls+=" today";cells+=`<div class="${cls}">${dnum}</div>`;}
+  const trail=(7-(first+days)%7)%7;for(let i=0;i<trail;i++)cells+=`<div class="cell empty"></div>`;
   const monthLabel=`${y}년 ${m+1}월`;
   const w7=all.filter(r=>Date.now()-new Date(r.created_at)<7*864e5).length;
-  let h=`<div class="cal"><div class="calhd"><button id="calPrev">‹</button><div class="mlabel">${monthLabel}</div><button id="calNext">›</button></div><div class="grid7">${["일","월","화","수","목","금","토"].map(d=>`<div class="dow">${d}</div>`).join("")}${cells}</div><div class="callegend"><span><i style="background:var(--good)"></i>운동함</span><span><i style="background:#e23b3b"></i>안함</span><span><i style="background:var(--bg2)"></i>예정</span></div></div>`;
+  let h=`<div class="cal"><div class="calhd"><button id="calPrev">‹</button><div class="mlabel">${monthLabel}</div><button id="calNext">›</button></div><div class="grid7">${["월","화","수","목","금","토","일"].map(d=>`<div class="dow">${d}</div>`).join("")}${cells}</div><div class="callegend"><span><i style="background:var(--good)"></i>운동함</span><span><i style="background:#e23b3b"></i>안함</span><span><i style="background:var(--bg2)"></i>예정</span></div></div>`;
   h+=`<div class="statgrid"><div class="dcard"><div class="k">최근 7일</div><div class="v">${w7}<small> 회</small></div></div><div class="dcard"><div class="k">누적 운동</div><div class="v">${all.length}<small> 회</small></div></div></div>`;
   h+=`<div class="sectlbl">종목별 (TM · 추정 1RM · PR)</div>`;
   const per={};LIFTS.forEach(l=>per[l.name]={key:l.key,pr:0,cur:0});
@@ -593,12 +597,12 @@ function buildSettings(){
 document.getElementById("unitSeg2").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;S.unit=b.dataset.u;save();buildSettings();render();});
 document.getElementById("deloadSeg").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;S.showDeload=b.dataset.d==="1";save();buildSettings();render();});
 document.getElementById("saveTm").addEventListener("click",()=>{const bv=parseFloat(document.getElementById("barInput").value);if(bv>0)S.bar=bv;for(const l of LIFTS){const v=parseFloat(document.getElementById("tm-"+l.key).value);if(v>0)S.tm[l.key]=v;}save();render();toast("저장됨");});
-document.getElementById("hwpoStart").addEventListener("change",e=>{S.hwpoStart=e.target.value||null;S.weekManual=false;autoApplied=false;applyAuto();save();render();toast("시작일 설정됨");});
-document.getElementById("resetCycle").addEventListener("click",()=>{const t=new Date();const ds=t.getFullYear()+"-"+String(t.getMonth()+1).padStart(2,"0")+"-"+String(t.getDate()).padStart(2,"0");S.hwpoStart=ds;S.week=0;S.weekManual=false;autoApplied=false;save();buildSettings();render();toast("이번 사이클을 1주차 1일로 리셋했어요");});
+document.getElementById("hwpoStart").addEventListener("change",e=>{S.hwpoStart=e.target.value||null;manualWeek=false;applyAuto();save();render();toast("시작일 설정됨");});
+document.getElementById("resetCycle").addEventListener("click",()=>{const t=new Date();const ds=t.getFullYear()+"-"+String(t.getMonth()+1).padStart(2,"0")+"-"+String(t.getDate()).padStart(2,"0");S.hwpoStart=ds;S.week=0;manualWeek=false;save();buildSettings();render();toast("이번 사이클을 1주차 1일로 리셋했어요");});
 document.getElementById("logoutBtn").addEventListener("click",async()=>{if(sb)await sb.auth.signOut();location.reload();});
 
 /* 내비 */
-document.getElementById("nav").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;const p=b.dataset.nav;if(p==="settings")buildSettings();if(p==="dashboard")renderDash();if(p==="wl")renderWl();if(p==="calc")renderCalc();show(p);});
+document.getElementById("nav").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;const p=b.dataset.nav;if(p==="today")enterToday();if(p==="settings")buildSettings();if(p==="dashboard")renderDash();if(p==="wl")renderWl();if(p==="calc")renderCalc();show(p);});
 
 async function boot(){initAuth();if(configured){const {data:{session:s}}=await sb.auth.getSession();if(s){await afterLogin();return;}}show("auth");}
 boot();
