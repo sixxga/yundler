@@ -1,18 +1,16 @@
 {
-  "name": "Yundler · 5/3/1 운동",
+  "name": "Yundler",
   "short_name": "Yundler",
-  "description": "웬들러 5/3/1 근력 프로그램 트래커",
+  "description": "Yundler - 꾸준히 하면 강해진다",
   "start_url": "index.html",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#0d0f14",
-  "theme_color": "#e8f3ff",
+  "theme_color": "#0d0f14",
   "icons": [
-    {
-      "src": "icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
-    }
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
   ]
 }
