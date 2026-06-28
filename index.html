@@ -27,6 +27,7 @@ a{color:var(--accent2)}
 .hd{padding:16px 18px 6px;display:flex;align-items:center;justify-content:space-between;gap:10px}
 .hd .logo{font-weight:800;font-size:22px;letter-spacing:-.5px}
 .hd .logo span{color:var(--accent2)}
+.hd .today-date{font-size:12px;font-weight:700;color:var(--sub);margin-top:1px}
 .hd .right{display:flex;align-items:center;gap:10px}
 .hd .cyc{font-size:13px;color:var(--sub);background:var(--card);padding:6px 12px;border-radius:20px;border:1px solid var(--line)}
 .hd .pf{width:38px;height:38px;border-radius:50%;background:var(--card);border:1px solid var(--line);display:grid;place-items:center;font-weight:800;color:var(--accent2);font-size:15px}
@@ -214,7 +215,7 @@ h2.pt{font-size:22px;font-weight:800;margin:8px 4px 16px}
 </head>
 <body>
 <div class="app">
-  <div class="hd" id="hd" style="display:none"><div class="logo">Yun<span>dler</span></div><div class="right"><div class="cyc" id="cycLabel">사이클 1</div><button class="pf" id="pfBtn">·</button></div></div>
+  <div class="hd" id="hd" style="display:none"><div><div class="logo">Yun<span>dler</span></div><div class="today-date" id="todayDate"></div></div><div class="right"><div class="cyc" id="cycLabel">사이클 1</div><button class="pf" id="pfBtn">·</button></div></div>
 
   <div class="page" id="page-auth">
     <div class="auth">
@@ -288,7 +289,7 @@ h2.pt{font-size:22px;font-weight:800;margin:8px 4px 16px}
     <div class="field"><label>바벨 무게 (<span class="cu">lb</span>)</label><input type="number" inputmode="decimal" id="barInput"><div class="hint">남 45 / 여 35 lb 기준 자동값. 직접 변경 가능.</div></div>
     <div class="field"><label>1RM (최대 1회 무게) · <span class="cu">lb</span></label><div id="rmEdit"></div><div class="hint">TM은 1RM의 90%로 내부 자동 계산돼요.</div></div>
     <button class="btn ghost sm" id="saveProfile">저장</button>
-    <div class="field" style="margin-top:24px"><label>랭킹 공개</label><div class="toggleseg" id="rankSeg"><button data-r="1">공개</button><button data-r="0" class="on">비공개</button></div><div class="hint">공개하면 회원 랭킹에 이름과 기록이 표시돼요.</div></div>
+    <div class="field" style="margin-top:24px"><label>랭킹 공개</label><div class="toggleseg" id="rankSeg"><button data-r="1" class="on">공개</button><button data-r="0">숨기기</button></div><div class="hint">기본 공개예요. 회원 랭킹에 이름과 기록이 표시돼요. 원치 않으면 숨기기로 끄세요.</div></div>
     <div class="field" style="margin-top:8px"><label>HWPO 사이클 시작일</label><input type="date" id="hwpoStart"><div class="hint">이 날짜를 1주차 1일로 삼아 오늘 기준 주차를 자동 계산해요.</div></div>
     <button class="btn cancel sm" id="resetCycle">이번 사이클 리셋 (오늘을 1주차 1일로)</button>
     <div class="field" style="margin-top:24px"><label>주간 스케줄 (요일별 운동)</label><div id="schedEdit"></div></div>
@@ -331,7 +332,9 @@ const cfg=window.YUNDLER_CONFIG||{};
 const configured=cfg.SUPABASE_URL&&cfg.SUPABASE_URL.startsWith("http")&&cfg.SUPABASE_ANON_KEY&&cfg.SUPABASE_ANON_KEY.length>20;
 if(configured) sb=window.supabase.createClient(cfg.SUPABASE_URL,cfg.SUPABASE_ANON_KEY);
 
-const DEF={unit:"lb",bar:45,gender:"male",tm:{},oneRM:{},cycle:1,week:0,done:{},showDeload:true,setup:false,schedule:{mon:null,tue:null,wed:null,thu:null,fri:null,sat:null,sun:null},weightlifting:{exercises:[]},hwpoStart:null,supp:{},pace:{},rankOptin:false,cycleFail:{}};
+const WD=["일","월","화","수","목","금","토"];
+function todayLabel(){const d=new Date();return `${d.getDate()}일(${WD[d.getDay()]})`;}
+const DEF={unit:"lb",bar:45,gender:"male",tm:{},oneRM:{},cycle:1,week:0,done:{},showDeload:true,setup:false,schedule:{mon:null,tue:null,wed:null,thu:null,fri:null,sat:null,sun:null},weightlifting:{exercises:[]},hwpoStart:null,supp:{},pace:{},rankOptin:true,cycleFail:{}};
 let S=JSON.parse(JSON.stringify(DEF));
 let autoApplied=false,highlightLift=null,manualWeek=false,todayMode="main";
 
@@ -375,7 +378,7 @@ async function doAuth(){
       const {data,error}=await sb.auth.signUp({email,password:pw});if(error)throw error;
       if(!data.session){err.textContent="가입은 됐지만 자동 로그인이 안 됐어요. 관리자에게 문의하세요.";return;}
       const bar=signupGender==="female"?35:45;
-      await sb.from("profiles").insert({id:data.user.id,username:id,name:nm,state:{gender:signupGender,bar,unit:"lb"},last_seen:new Date().toISOString()});
+      await sb.from("profiles").insert({id:data.user.id,username:id,name:nm,state:{gender:signupGender,bar,unit:"lb",rankOptin:true},last_seen:new Date().toISOString()});
       await afterLogin();
     }else{const {error}=await sb.auth.signInWithPassword({email,password:pw});if(error)throw error;await afterLogin();}
   }catch(ex){const m=(ex&&ex.message)||"";if(/already registered/i.test(m))err.textContent="이미 있는 아이디예요";else if(/Invalid login/i.test(m))err.textContent="아이디 또는 비밀번호가 틀렸어요";else err.textContent=m||"오류가 발생했어요";}
@@ -389,6 +392,7 @@ async function afterLogin(){
   if(!S.schedule)S.schedule=JSON.parse(JSON.stringify(DEF.schedule));if(!S.weightlifting)S.weightlifting={exercises:[]};if(!S.supp)S.supp={};if(!S.pace)S.pace={};if(!S.oneRM)S.oneRM={};if(!S.cycleFail)S.cycleFail={};
   if(!S.bar)S.bar=S.unit==="kg"?20:45;
   document.getElementById("pfBtn").textContent=(profile.name||profile.username||"·").slice(0,1).toUpperCase();
+  document.getElementById("todayDate").textContent=todayLabel();
   sb.from("profiles").update({last_seen:new Date().toISOString()}).eq("id",session.user.id).then(()=>{});
   ensureWlBuiltins();
   if(S.setup&&S.tm&&Object.keys(S.tm).length===4){applyAuto();render();show("today");}else{buildSetup();show("setup");}
