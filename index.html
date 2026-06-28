@@ -126,11 +126,11 @@ h2.pt{font-size:22px;font-weight:800;margin:8px 4px 16px}
 .calhd{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
 .calhd button{padding:6px 14px;border:1px solid var(--line);border-radius:10px;font-weight:700;color:var(--sub);font-size:16px}
 .calhd .mlabel{font-weight:800;font-size:16px}
-.grid7{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
-.dows{margin-bottom:6px}
-.dow{text-align:center;font-size:11px;color:var(--mut);padding:2px 0}
-.cell{aspect-ratio:1/1;min-height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;background:var(--bg2);color:var(--sub)}
-.cell.empty{background:transparent}
+.grid7{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;width:100%}
+.dow{text-align:center;font-size:11px;color:var(--mut);font-weight:700;padding:2px 0 6px}
+.cell{aspect-ratio:1/1;min-width:0;box-sizing:border-box;border-radius:10px;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;background:var(--bg2);color:var(--sub)}
+.cell.empty{background:transparent;border-color:transparent}
+.cell.muted{background:transparent;border-color:transparent;color:var(--mut);opacity:.3}
 .cell.done{background:rgba(46,204,113,.18);color:#86e6ab;border:1px solid var(--good)}
 .cell.miss{background:rgba(226,59,59,.13);color:#ff9a9a;border:1px solid #5a2a2a}
 .cell.future{color:var(--mut)}
@@ -497,12 +497,11 @@ async function renderDash(){
   if(calMonth===null){const t=new Date();calMonth=new Date(t.getFullYear(),t.getMonth(),1);}
   const today=new Date();today.setHours(0,0,0,0);const todayStr=dkey(today);
   const y=calMonth.getFullYear(),m=calMonth.getMonth();
-  const first=(new Date(y,m,1).getDay()+6)%7;const days=new Date(y,m+1,0).getDate();
-  let cells="";for(let i=0;i<first;i++)cells+=`<div class="cell empty"></div>`;
-  for(let dn=1;dn<=days;dn++){const cd=new Date(y,m,dn);cd.setHours(0,0,0,0);const key=dkey(cd);let cls="cell";if(doneDays.has(key))cls+=" done";else if(cd>today)cls+=" future";else cls+=" miss";if(key===todayStr)cls+=" today";cells+=`<div class="${cls}">${dn}</div>`;}
-  const trail=(7-(first+days)%7)%7;for(let i=0;i<trail;i++)cells+=`<div class="cell empty"></div>`;
+  const first=(new Date(y,m,1).getDay()+6)%7;const days=new Date(y,m+1,0).getDate();const prevDays=new Date(y,m,0).getDate();const total=Math.ceil((first+days)/7)*7;
+  let cells=["월","화","수","목","금","토","일"].map(d=>`<div class="dow">${d}</div>`).join("");
+  for(let i=0;i<total;i++){const dn=i-first+1;if(dn<1){cells+=`<div class="cell muted">${prevDays+dn}</div>`;}else if(dn>days){cells+=`<div class="cell muted">${dn-days}</div>`;}else{const cd=new Date(y,m,dn);cd.setHours(0,0,0,0);const key=dkey(cd);let cls="cell";if(doneDays.has(key))cls+=" done";else if(cd>today)cls+=" future";else cls+=" miss";if(key===todayStr)cls+=" today";cells+=`<div class="${cls}">${dn}</div>`;}}
   const w7=all.filter(r=>Date.now()-new Date(r.created_at)<7*864e5).length;
-  let h=`<div class="cal"><div class="calhd"><button id="calPrev">‹</button><div class="mlabel">${y}년 ${m+1}월</div><button id="calNext">›</button></div><div class="grid7 dows">${["월","화","수","목","금","토","일"].map(d=>`<div class="dow">${d}</div>`).join("")}</div><div class="grid7 days">${cells}</div><div class="callegend"><span><i style="background:var(--good)"></i>운동함</span><span><i style="background:#e23b3b"></i>안함</span><span><i style="background:var(--bg2)"></i>예정</span></div></div>`;
+  let h=`<div class="cal"><div class="calhd"><button id="calPrev">‹</button><div class="mlabel">${y}년 ${m+1}월</div><button id="calNext">›</button></div><div class="grid7">${cells}</div><div class="callegend"><span><i style="background:var(--good)"></i>운동함</span><span><i style="background:#e23b3b"></i>안함</span><span><i style="background:var(--bg2)"></i>예정</span></div></div>`;
   h+=`<div class="statgrid"><div class="dcard"><div class="k">연속(스트릭)</div><div class="v">${streakFrom(doneDays)}<small> 일</small></div></div><div class="dcard"><div class="k">최근 7일</div><div class="v">${w7}<small> 회</small></div></div><div class="dcard"><div class="k">누적 운동</div><div class="v">${all.length}<small> 회</small></div></div><div class="dcard"><div class="k">현재 사이클</div><div class="v">${hwpoCycleNo()||S.cycle}</div></div></div>`;
   h+=`<div class="sectlbl">종목별 (추정 1RM · PR)</div>`;
   const per={};LIFTS.forEach(l=>per[l.name]={key:l.key,pr:0,cur:0});all.forEach(r=>{if(per[r.lift]&&r.reps){const e=e1(r.weight,r.reps);per[r.lift].cur=e;if(e>per[r.lift].pr)per[r.lift].pr=e;}});
