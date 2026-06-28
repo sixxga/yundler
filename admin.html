@@ -38,7 +38,8 @@ tbody tr:hover{background:var(--card2)}
 .uname{font-weight:700}
 .badge{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:7px;margin-left:6px;background:rgba(255,200,87,.15);color:var(--gold)}
 .badge.off{background:rgba(226,59,59,.16);color:#ff9a9a}
-tr.inactive{opacity:.45}
+tr.inactive{opacity:.55}
+.actbtn{font-size:12px;font-weight:700;padding:7px 12px;border-radius:9px;border:1px solid var(--line);background:var(--bg2);white-space:nowrap}
 .muted{color:var(--mut);font-size:13px}
 .empty{text-align:center;color:var(--mut);padding:50px;font-size:14px}
 .gate{min-height:80vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;padding:30px}
@@ -133,7 +134,7 @@ function renderDash(){
       <span class="cnt" id="cnt"></span>
     </div>
     <table>
-      <thead><tr><th>이름</th><th>아이디</th><th>사이클</th><th>운동 수</th><th>최근 접속</th><th>가입일</th></tr></thead>
+      <thead><tr><th>이름</th><th>아이디</th><th>사이클</th><th>운동 수</th><th>최근 접속</th><th>가입일</th><th>관리</th></tr></thead>
       <tbody id="rows"></tbody>
     </table>`;
   document.getElementById("search").addEventListener("input",e=>renderRows(e.target.value.trim().toLowerCase()));
@@ -144,7 +145,7 @@ function renderRows(q){
   const rows=document.getElementById("rows");
   const list=allUsers.filter(u=>!q||(u.username||"").includes(q)||(u.name||"").toLowerCase().includes(q));
   document.getElementById("cnt").textContent=`${list.length}명`;
-  if(!list.length){ rows.innerHTML=`<tr><td colspan="5" class="empty">결과 없음</td></tr>`; return; }
+  if(!list.length){ rows.innerHTML=`<tr><td colspan="7" class="empty">결과 없음</td></tr>`; return; }
   rows.innerHTML=list.map(u=>{
     const s=statsFor(u.id);
     const st=u.state||{};
@@ -157,9 +158,17 @@ function renderRows(q){
       <td>${s.count}</td>
       <td>${fmtDate(seen)} <span class="muted">${daysAgo(seen)}</span></td>
       <td class="muted">${u.created_at?fmtDate(new Date(u.created_at)):"—"}</td>
+      <td>${u.id===meId?'<span class="muted">-</span>':`<button class="actbtn" data-act="${u.id}" style="${u.active===false?'color:#86e6ab;border-color:#2f6a4a':'color:#ff9a9a;border-color:#5a2a30'}">${u.active===false?'활성화':'비활성화'}</button>`}</td>
     </tr>`;
   }).join("");
   rows.querySelectorAll("tr").forEach(tr=>tr.addEventListener("click",()=>openUser(tr.dataset.uid)));
+  rows.querySelectorAll(".actbtn").forEach(b=>b.addEventListener("click",async ev=>{
+    ev.stopPropagation();const uid=b.dataset.act;const u=allUsers.find(x=>x.id===uid);const off=u.active!==false;
+    if(!confirm(off?"이 계정을 비활성화할까요? 데이터는 보존되며 로그인만 차단됩니다.":"이 계정을 다시 활성화할까요?"))return;
+    const {error}=await sb.from("profiles").update({active:!off}).eq("id",uid);
+    if(error){alert("실패: "+error.message);return;}
+    await loadAll();
+  }));
 }
 
 function openUser(uid){
